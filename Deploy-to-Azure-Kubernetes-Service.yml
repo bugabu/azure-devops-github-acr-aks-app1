@@ -12,7 +12,7 @@ variables:
 
  # Container registry service connection established during pipeline creation
  dockerRegistryServiceConnection: 'test'
- imageRepository: 'app1/app1nginx'
+ imageRepository: 'app1nginx'
  containerRegistry: 'acrish.azurecr.io'
  dockerfilePath: '**/Dockerfile'
  tag: '$(Build.BuildId)'
@@ -24,55 +24,55 @@ variables:
 
 stages:
 - stage: Build
- displayName: Build stage
- jobs:  
- - job: Build
-   displayName: Build
-   pool:
-     vmImage: $(vmImageName)
-   steps:
-   - task: Docker@2
-     displayName: Build and push an image to container registry
-     inputs:
-       command: buildAndPush
-       repository: $(imageRepository)
-       dockerfile: $(dockerfilePath)
-       containerRegistry: $(dockerRegistryServiceConnection)
-       tags: |
-         $(tag)
+  displayName: Build-stage
+  jobs:  
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        tags: |
+          $(tag)
          
-   - upload: manifests
-     artifact: manifests
+    - upload: manifests
+      artifact: manifests
 
 - stage: Deploy
- displayName: Deploy stage
- dependsOn: Build
+  displayName: Deploy-stage
+  dependsOn: Build
 
- jobs:
- - deployment: Deploy
-   displayName: Deploy
-   pool:
-     vmImage: $(vmImageName)
-   environment: 'bugabuazuredevopsgithubacraksapp1.test'
-   strategy:
-     runOnce:
-       deploy:
-         steps:
-         - task: KubernetesManifest@0
-           displayName: Create imagePullSecret
-           inputs:
-             action: createSecret
-             secretName: $(imagePullSecret)
-             dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
-             
-         - task: KubernetesManifest@0
-           displayName: Deploy to Kubernetes cluster
-           inputs:
-             action: deploy
-             manifests: |
-               $(Pipeline.Workspace)/manifests/deployment.yml
-               $(Pipeline.Workspace)/manifests/service.yml
-             imagePullSecrets: |
-               $(imagePullSecret)
-             containers: |
-               $(containerRegistry)/$(imageRepository):$(tag)
+  jobs:
+  - deployment: Deploy
+    displayName: Deploy
+    pool:
+      vmImage: $(vmImageName)
+    environment: 'bugabuazuredevopsgithubacraksapp1.test'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: KubernetesManifest@0
+            displayName: Create imagePullSecret
+            inputs:
+              action: createSecret
+              secretName: $(imagePullSecret)
+              dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
+              
+          - task: KubernetesManifest@0
+            displayName: Deploy to Kubernetes cluster
+            inputs:
+              action: deploy
+              manifests: |
+                $(Pipeline.Workspace)/manifests/deployment.yml
+                $(Pipeline.Workspace)/manifests/service.yml
+              imagePullSecrets: |
+                $(imagePullSecret)
+              containers: |
+                $(containerRegistry)/$(imageRepository):$(tag)
