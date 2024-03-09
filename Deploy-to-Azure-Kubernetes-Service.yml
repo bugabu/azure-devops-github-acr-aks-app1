@@ -12,11 +12,11 @@ variables:
 
  # Container registry service connection established during pipeline creation
  dockerRegistryServiceConnection: 'test'
- imageRepository: 'app1nginxaks'
- containerRegistry: 'aksdevopsacr.azurecr.io'
+ imageRepository: 'app1/app1nginx'
+ containerRegistry: 'acrish.azurecr.io'
  dockerfilePath: '**/Dockerfile'
  tag: '$(Build.BuildId)'
- imagePullSecret: 'aksdevopsacr1755e8d5-auth'
+ imagePullSecret: 'pull-secret'
 
  # Agent VM image name
  vmImageName: 'ubuntu-latest'
@@ -53,7 +53,7 @@ stages:
    displayName: Deploy
    pool:
      vmImage: $(vmImageName)
-   environment: 'stacksimplifyazuredevopsgithubacraksapp1internal-1561.default'
+   environment: 'bugabuazuredevopsgithubacraksapp1.test'
    strategy:
      runOnce:
        deploy:
